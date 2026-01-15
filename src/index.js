@@ -2,7 +2,7 @@ require('dotenv').config();
 
 const logger = require('./logger');
 const { loadSettings, loadTimetable, validateTimetable, getTodayLessons } = require('./timetable');
-const { getCurrentTime, getLessonsToNotify } = require('./scheduler');
+const { getCurrentTime, getLessonsToNotify, markAsNotified, getTodayDateString } = require('./scheduler');
 const { sendNotifications } = require('./notifications');
 
 async function main() {
@@ -47,12 +47,13 @@ async function main() {
     return;
   }
 
-  // Check for notifications
+  // Check for notifications (with deduplication)
   const lessonsToNotify = getLessonsToNotify(
     lessons,
     timetable.periods,
     settings.notificationOffset,
-    currentTime
+    currentTime,
+    settings.timezone
   );
 
   if (lessonsToNotify.length === 0) {
@@ -62,14 +63,20 @@ async function main() {
   }
 
   // Send notifications for each matching lesson
+  const todayDate = getTodayDateString(settings.timezone);
+
   for (const lesson of lessonsToNotify) {
     logger.info('Match found', { class: lesson.class, subject: lesson.subject });
 
     try {
       const result = await sendNotifications(lesson, settings);
       logger.info('Notification result', result);
+
+      // Mark as notified to prevent duplicates within the 5-minute window
+      markAsNotified(lesson.class, lesson.period, todayDate);
     } catch (err) {
       logger.error('Failed to send notifications', { error: err.message });
+      // Don't mark as notified if sending failed, so retry is possible
     }
   }
 

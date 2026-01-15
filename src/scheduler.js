@@ -1,4 +1,12 @@
 const logger = require('./logger');
+const fs = require('fs');
+const path = require('path');
+
+// Path to deduplication file
+const DEDUP_FILE = path.join(__dirname, '..', 'logs', 'last-notified.json');
+
+// Notification window in minutes (handles cron drift)
+const NOTIFICATION_WINDOW_MINUTES = 5;
 
 /**
  * Parse a time string in HH:MM format
@@ -74,7 +82,102 @@ function getCurrentTime(timezone) {
 }
 
 /**
+ * Convert time object to total minutes since midnight
+ * @param {object} time - { hours, minutes }
+ * @returns {number} Total minutes since midnight
+ */
+function timeToMinutes(time) {
+  return time.hours * 60 + time.minutes;
+}
+
+/**
+ * Get today's date string in YYYY-MM-DD format
+ * @param {string} timezone - Timezone string
+ * @returns {string} Date string
+ */
+function getTodayDateString(timezone) {
+  const now = new Date();
+  const options = {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  };
+  const formatter = new Intl.DateTimeFormat('en-CA', options); // en-CA gives YYYY-MM-DD format
+  return formatter.format(now);
+}
+
+/**
+ * Load the deduplication data from file
+ * @returns {object} Deduplication data { [className]: { date, period } }
+ */
+function loadDedupData() {
+  try {
+    if (fs.existsSync(DEDUP_FILE)) {
+      const data = fs.readFileSync(DEDUP_FILE, 'utf8');
+      return JSON.parse(data);
+    }
+  } catch (err) {
+    logger.warn('Failed to load dedup file, starting fresh', { error: err.message });
+  }
+  return {};
+}
+
+/**
+ * Save the deduplication data to file
+ * @param {object} data - Deduplication data
+ */
+function saveDedupData(data) {
+  try {
+    const logDir = path.dirname(DEDUP_FILE);
+    if (!fs.existsSync(logDir)) {
+      fs.mkdirSync(logDir, { recursive: true });
+    }
+    fs.writeFileSync(DEDUP_FILE, JSON.stringify(data, null, 2));
+  } catch (err) {
+    logger.error('Failed to save dedup file', { error: err.message });
+  }
+}
+
+/**
+ * Check if we've already notified for this lesson today
+ * @param {string} className - Class name
+ * @param {string} period - Period name
+ * @param {string} todayDate - Today's date string
+ * @returns {boolean} True if already notified
+ */
+function hasAlreadyNotified(className, period, todayDate) {
+  const dedupData = loadDedupData();
+  const key = `${className}|${period}`;
+  const entry = dedupData[key];
+  return entry && entry.date === todayDate;
+}
+
+/**
+ * Mark a lesson as notified
+ * @param {string} className - Class name
+ * @param {string} period - Period name
+ * @param {string} todayDate - Today's date string
+ */
+function markAsNotified(className, period, todayDate) {
+  const dedupData = loadDedupData();
+  const key = `${className}|${period}`;
+  dedupData[key] = { date: todayDate, notifiedAt: new Date().toISOString() };
+
+  // Clean up old entries (older than today)
+  for (const k of Object.keys(dedupData)) {
+    if (dedupData[k].date !== todayDate) {
+      delete dedupData[k];
+    }
+  }
+
+  saveDedupData(dedupData);
+  logger.info('Marked lesson as notified', { class: className, period, date: todayDate });
+}
+
+/**
  * Check if a notification should be sent for a lesson right now
+ * Uses a 5-minute window after the notification time to handle cron drift
  * @param {object} lesson - Lesson object with period property
  * @param {object} periods - Periods object from timetable
  * @param {number} offsetMinutes - Minutes after lesson start to notify
@@ -91,22 +194,47 @@ function shouldNotifyNow(lesson, periods, offsetMinutes, currentTime) {
   const periodStart = parseTime(period.start);
   const notifyTime = addMinutes(periodStart, offsetMinutes);
 
-  return currentTime.hours === notifyTime.hours &&
-         currentTime.minutes === notifyTime.minutes;
+  // Convert times to minutes since midnight for comparison
+  const currentMinutes = timeToMinutes(currentTime);
+  const notifyMinutes = timeToMinutes(notifyTime);
+  const windowEndMinutes = notifyMinutes + NOTIFICATION_WINDOW_MINUTES;
+
+  // Check if current time is within the notification window
+  // (at or after notification time, but before window end)
+  return currentMinutes >= notifyMinutes && currentMinutes < windowEndMinutes;
 }
 
 /**
  * Get all lessons that should trigger a notification right now
+ * Filters by time window and deduplication (skip if already notified today)
  * @param {Array} lessons - Array of today's lessons
  * @param {object} periods - Periods object from timetable
  * @param {number} offsetMinutes - Minutes after lesson start to notify
  * @param {object} currentTime - { hours, minutes }
+ * @param {string} timezone - Timezone string for date calculation
  * @returns {Array} Array of lessons that should notify now
  */
-function getLessonsToNotify(lessons, periods, offsetMinutes, currentTime) {
-  return lessons.filter(lesson =>
-    shouldNotifyNow(lesson, periods, offsetMinutes, currentTime)
-  );
+function getLessonsToNotify(lessons, periods, offsetMinutes, currentTime, timezone) {
+  const todayDate = getTodayDateString(timezone);
+
+  return lessons.filter(lesson => {
+    // First check if we're in the notification window
+    if (!shouldNotifyNow(lesson, periods, offsetMinutes, currentTime)) {
+      return false;
+    }
+
+    // Then check if we've already notified for this lesson today
+    if (hasAlreadyNotified(lesson.class, lesson.period, todayDate)) {
+      logger.info('Skipping duplicate notification', {
+        class: lesson.class,
+        period: lesson.period,
+        date: todayDate
+      });
+      return false;
+    }
+
+    return true;
+  });
 }
 
 module.exports = {
@@ -114,5 +242,9 @@ module.exports = {
   addMinutes,
   getCurrentTime,
   shouldNotifyNow,
-  getLessonsToNotify
+  getLessonsToNotify,
+  getTodayDateString,
+  hasAlreadyNotified,
+  markAsNotified,
+  NOTIFICATION_WINDOW_MINUTES
 };
