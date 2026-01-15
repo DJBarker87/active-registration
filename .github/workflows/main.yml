@@ -1,0 +1,32 @@
+name: Registration Reminder
+
+on:
+  schedule:
+    # Runs every 5 minutes during school hours (UK time)
+    # GitHub Actions uses UTC, so 8am-6pm UK = 8am-6pm UTC (roughly, depending on DST)
+    # Running every 5 mins reduces the impact of timing drift
+    - cron: '*/5 6-18 * * 1-6'  # Every 5 mins, 6am-6pm UTC, Mon-Sat
+  workflow_dispatch:  # Allows manual trigger for testing
+
+jobs:
+  check-and-notify:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install dependencies
+        run: npm install
+      
+      - name: Run notification check
+        run: node src/index.js
+        env:
+          PUSHOVER_USER_KEY: ${{ secrets.PUSHOVER_USER_KEY }}
+          PUSHOVER_API_TOKEN: ${{ secrets.PUSHOVER_API_TOKEN }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
