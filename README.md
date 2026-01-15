@@ -6,6 +6,24 @@ A simple, reliable system that reminds you to take registration 10 minutes into 
 
 ---
 
+## Status
+
+**Build complete and tested** (January 2026)
+
+- [x] Logger module
+- [x] Timetable loader with validation
+- [x] Scheduler with timezone-aware time matching
+- [x] Pushover notifications (tested and working)
+- [x] Resend email notifications (tested and working)
+- [x] Main entry point
+- [x] Test scripts (`npm run test:notification`, `npm run test:schedule`)
+- [x] Install script for Raspberry Pi
+- [ ] Deploy to Raspberry Pi
+
+**Next step:** Clone to Raspberry Pi and run `./scripts/install.sh`
+
+---
+
 ## Quick Start
 
 ### 1. Set Up External Services
