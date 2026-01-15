@@ -1,0 +1,14 @@
+{
+  "activeTimetable": "lent-2026",
+  "notificationOffset": 10,
+  "email": {
+    "to": "d.barker@etoncollege.org.uk",
+    "from": "onboarding@resend.dev",
+    "fromName": "Registration Reminder"
+  },
+  "pushover": {
+    "priority": 1,
+    "sound": "pushover"
+  },
+  "timezone": "Europe/London"
+}

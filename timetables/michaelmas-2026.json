@@ -1,0 +1,26 @@
+{
+  "meta": {
+    "name": "Michaelmas 2026",
+    "startDate": "2026-09-07",
+    "endDate": "2026-12-12",
+    "description": "Michaelmas term timetable - UPDATE THIS WITH YOUR ACTUAL TIMETABLE"
+  },
+  "periods": {
+    "1st School": { "start": "09:00", "end": "09:40" },
+    "2nd School": { "start": "09:50", "end": "10:30" },
+    "3rd School": { "start": "10:40", "end": "11:20" },
+    "4th School": { "start": "11:45", "end": "12:25" },
+    "5th School": { "start": "12:35", "end": "13:15" },
+    "After 4": { "start": "16:30", "end": "17:10" },
+    "After 5": { "start": "17:20", "end": "18:00" }
+  },
+  "schedule": {
+    "monday": [],
+    "tuesday": [],
+    "wednesday": [],
+    "thursday": [],
+    "friday": [],
+    "saturday": [],
+    "sunday": []
+  }
+}

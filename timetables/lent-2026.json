@@ -1,0 +1,48 @@
+{
+  "meta": {
+    "name": "Lent 2026",
+    "startDate": "2026-01-12",
+    "endDate": "2026-03-28",
+    "description": "Lent term timetable for Dom Barker"
+  },
+  "periods": {
+    "1st School": { "start": "09:00", "end": "09:40" },
+    "2nd School": { "start": "09:50", "end": "10:30" },
+    "3rd School": { "start": "10:40", "end": "11:20" },
+    "4th School": { "start": "11:45", "end": "12:25" },
+    "5th School": { "start": "12:35", "end": "13:15" },
+    "After 4": { "start": "16:30", "end": "17:10" },
+    "After 5": { "start": "17:20", "end": "18:00" }
+  },
+  "schedule": {
+    "monday": [
+      { "period": "1st School", "class": "FMat2-2", "subject": "Further Maths", "room": "23 New" },
+      { "period": "2nd School", "class": "BMdaV-3", "subject": "Double Maths (Applied)", "room": "23 New" },
+      { "period": "4th School", "class": "CMdaY-6", "subject": "Double Maths (Applied)", "room": "23 New" },
+      { "period": "After 4", "class": "CMsiW-1", "subject": "Single Maths", "room": "23 New" }
+    ],
+    "tuesday": [
+      { "period": "2nd School", "class": "CMsiW-1", "subject": "Single Maths", "room": "23 New" },
+      { "period": "4th School", "class": "FMat2-2", "subject": "Further Maths", "room": "23 New" }
+    ],
+    "wednesday": [
+      { "period": "1st School", "class": "CMsiW-1", "subject": "Single Maths", "room": "23 New" },
+      { "period": "4th School", "class": "BMdaV-3", "subject": "Double Maths (Applied)", "room": "23 New" }
+    ],
+    "thursday": [
+      { "period": "1st School", "class": "BMdaV-3", "subject": "Double Maths (Applied)", "room": "23 New" },
+      { "period": "2nd School", "class": "CMdaY-6", "subject": "Double Maths (Applied)", "room": "23 New" },
+      { "period": "4th School", "class": "CMsiW-1", "subject": "Single Maths", "room": "23 New" }
+    ],
+    "friday": [
+      { "period": "1st School", "class": "CMdaY-6", "subject": "Double Maths (Applied)", "room": "23 New" },
+      { "period": "3rd School", "class": "FMat2-2", "subject": "Further Maths", "room": "23 New" }
+    ],
+    "saturday": [
+      { "period": "1st School", "class": "CMdaY-6", "subject": "Double Maths (Applied)", "room": "23 New" },
+      { "period": "2nd School", "class": "BMdaV-3", "subject": "Double Maths (Applied)", "room": "23 New" },
+      { "period": "4th School", "class": "FMat2-2", "subject": "Further Maths", "room": "23 New" }
+    ],
+    "sunday": []
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "active-registration",
+  "version": "1.0.0",
+  "description": "Lesson registration reminder system - sends push notifications and emails 10 minutes into each lesson",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test:notification": "node scripts/test-notification.js",
+    "test:schedule": "node scripts/test-schedule.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DJBarker87/active-registration.git"
+  },
+  "author": "Dom Barker",
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "dotenv": "^16.3.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
