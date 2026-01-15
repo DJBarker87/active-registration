@@ -3,7 +3,7 @@
   "notificationOffset": 10,
   "email": {
     "to": "d.barker@etoncollege.org.uk",
-    "from": "onboarding@resend.dev",
+    "from": "dom@www.field-game.co.uk",
     "fromName": "Registration Reminder"
   },
   "pushover": {
