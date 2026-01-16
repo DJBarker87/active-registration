@@ -2,8 +2,9 @@ require('dotenv').config();
 
 const logger = require('./logger');
 const { loadSettings, loadTimetable, validateTimetable, getTodayLessons } = require('./timetable');
-const { getCurrentTime, getLessonsToNotify, markAsNotified, getTodayDateString } = require('./scheduler');
+const { getCurrentTime, getLessonsToNotify, getTodayDateString } = require('./scheduler');
 const { sendNotifications } = require('./notifications');
+const { hasBeenNotified, markNotified } = require('./dedup');
 
 async function main() {
   logger.info('Checking for notifications...');
@@ -47,33 +48,43 @@ async function main() {
     return;
   }
 
-  // Check for notifications (with deduplication)
-  const lessonsToNotify = getLessonsToNotify(
+  // Get lessons within the notification time window
+  const lessonsInWindow = getLessonsToNotify(
     lessons,
     timetable.periods,
     settings.notificationOffset,
-    currentTime,
-    settings.timezone
+    currentTime
   );
 
-  if (lessonsToNotify.length === 0) {
+  if (lessonsInWindow.length === 0) {
     logger.info('No notifications at this time');
     logger.info('Complete');
     return;
   }
 
-  // Send notifications for each matching lesson
+  // Get today's date for deduplication
   const todayDate = getTodayDateString(settings.timezone);
 
-  for (const lesson of lessonsToNotify) {
+  // Send notifications for each matching lesson (with deduplication)
+  for (const lesson of lessonsInWindow) {
+    // Check if already notified today
+    if (hasBeenNotified(lesson, todayDate)) {
+      logger.info('Skipping duplicate notification', {
+        class: lesson.class,
+        period: lesson.period,
+        date: todayDate
+      });
+      continue;
+    }
+
     logger.info('Match found', { class: lesson.class, subject: lesson.subject });
 
     try {
       const result = await sendNotifications(lesson, settings);
       logger.info('Notification result', result);
 
-      // Mark as notified to prevent duplicates within the 5-minute window
-      markAsNotified(lesson.class, lesson.period, todayDate);
+      // Mark as notified to prevent duplicates
+      markNotified(lesson, todayDate);
     } catch (err) {
       logger.error('Failed to send notifications', { error: err.message });
       // Don't mark as notified if sending failed, so retry is possible
