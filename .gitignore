@@ -6,7 +6,7 @@ node_modules/
 
 # Logs
 logs/*.log
-logs/last-notified.json
+logs/notified-today.json
 
 # OS files
 .DS_Store
